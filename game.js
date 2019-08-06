@@ -19,22 +19,22 @@ var state = {
 
 const HH = "HeroHunter";
 if (localStorage.getItem(HH + 'Target')) {
-    state['Target'].active = localStorage.getItem(HH + 'Target');
+    state['Target'].active = parseInt(localStorage.getItem(HH + 'Target'));
 }
 if (localStorage.getItem(HH + 'Aimkey')) {
-    state['Aimkey'].active = localStorage.getItem(HH + 'Aimkey');
+    state['Aimkey'].active = parseInt(localStorage.getItem(HH + 'Aimkey'));
 }
 if (localStorage.getItem(HH + 'BHOP')) {
-    state['BHOP'].active = localStorage.getItem(HH + 'BHOP');
+    state['BHOP'].active = parseInt(localStorage.getItem(HH + 'BHOP'));
 }
 if (localStorage.getItem(HH + 'Fake Lag')) {
-    state['Fake Lag'].active = localStorage.getItem(HH + 'Fake Lag');
+    state['Fake Lag'].active = parseInt(localStorage.getItem(HH + 'Fake Lag'));
 }
 if (localStorage.getItem(HH + 'Anti Aim')) {
-    state['Anti Aim'].active = localStorage.getItem(HH + 'Anti Aim');
+    state['Anti Aim'].active = parseInt(localStorage.getItem(HH + 'Anti Aim'));
 }
 if (localStorage.getItem(HH + 'Third Person')) {
-    state['Third Person'].active = localStorage.getItem(HH + 'Third Person');
+    state['Third Person'].active = parseInt(localStorage.getItem(HH + 'Third Person'));
 }
 
 var menuActive = true;
