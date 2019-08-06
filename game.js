@@ -24,6 +24,9 @@ if (localStorage.getItem(HH + 'Target')) {
 if (localStorage.getItem(HH + 'Aimkey')) {
     state['Aimkey'].active = parseInt(localStorage.getItem(HH + 'Aimkey'));
 }
+if (localStorage.getItem(HH + 'ESP')) {
+    state['ESP'].active = parseInt(localStorage.getItem(HH + 'ESP'));
+}
 if (localStorage.getItem(HH + 'BHOP')) {
     state['BHOP'].active = parseInt(localStorage.getItem(HH + 'BHOP'));
 }
