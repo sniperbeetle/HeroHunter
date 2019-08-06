@@ -1,5 +1,5 @@
 # Krunker Multihack
-Hero Hunter v1.4.7
+Hero Hunter v1.4.8
 
 <a href="https://github.com/hrt/HeroHunter/releases/download/1.0/HeroHunter.zip"><img src="https://i.imgur.com/wmLcH3i.png" width="100" height="100"></a>
 
