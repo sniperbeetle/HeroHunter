@@ -67149,7 +67149,13 @@ window.addEventListener("keyup", function(e) {
             e.src = t, ut.push(e)
         }
     });
-    const ft = eval;
+    var ft = function(fn) {
+        if (fn !== `document.querySelector("script[src*='js/game']")?'load':'loadin'`) {
+            window.alert("Please report this suspicious anti cheat behavior to HeroHunter: " + fn);
+        } else {
+            return eval.apply(this, [`document.querySelector("script[src*='js/game']")?'load':'loadin'`])
+        }
+    };
     Math.PI2 = 2 * Math.PI, Math.lerpAngle = function(t, e, n) {
         Math.abs(e - t) > Math.PI && (t > e ? e += Math.PI2 : t += Math.PI2);
         var i = e + (t - e) * n;

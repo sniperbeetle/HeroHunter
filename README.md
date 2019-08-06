@@ -68,7 +68,7 @@ window.chH = function(a) {
 };
 ```
 
-In an attempt to avoid updates which could potentially blacklist this cheat, this extension blocks all javascript files from krunker.io. Obviously this is also trivial to bypass: for example, they could be running javascript remotely since things like 
+In an attempt to avoid updates which could potentially blacklist this cheat, this extension blocks all javascript files from krunker.io. Krunkers client side javascript code allows for remote code execution via their WebSockets. Here are some examples of the use of their remote code execution to check if a client has loaded properly:
 
 ```Array.from(document.scripts).filter(x=>x.src&&/js\/game\.[^\.]+\.js\?build=.+/.test(x.src)).length?'checkin':'loadin'```
 
@@ -77,4 +77,4 @@ and
 ```document.querySelector("script[src*='js/game']")?'load':'loadin',false```
 
 
-are sent to the client through websockets - not necessarily for anti cheating.
+This could allow for a stealthy anti cheat check to be loaded mid game going unnoticed by a typical cheater. This extension completley disables remote code execution and alerts the user if they are trying to execute something new so that they cannot place an anti cheat system in stealth.
