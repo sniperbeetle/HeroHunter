@@ -47,7 +47,7 @@ var lastShootState = 0;
 var lastScopeState = 0;
 var lastReloadState = 0;
 var lastFlush = new Date();
-var lastPositionState = {x: 0, y: 0, z: 0};
+var lastPositionState = {x: 0, y: 0, z: 0, height: 0};
 var ogL = 0;
 var ogR = 0;
 var loadedImages = {};
@@ -69,11 +69,11 @@ var sendAllData = function(force) {
             inputsUpdated |= sendBuffer[i].t == 'i';
         }
         sendBuffer.length = 0;
-        if (inputsUpdated && __this && __h) {
+        if (inputsUpdated && __this && __h && __me) {
             lastScopeState = __this.mouseDownR;
             lastReloadState = __h.keys[__h.reloadKey];
             lastShootState = __this.mouseDownL;
-            lastPositionState = {x: __this.object.position.x, y: __this.object.position.y, z: __this.object.position.z};
+            lastPositionState = {x: __this.object.position.x, y: __this.object.position.y, z: __this.object.position.z, height: __me.height};
             lastFlush = new Date();
         }
     } else if (supersecretsocket == null) {
@@ -66701,8 +66701,8 @@ window.addEventListener("keyup", function(e) {
                 if ((_ = tmpObj.objInstances.position.clone()).y += i.playerHeight + i.nameOffset - tmpObj.crouchVal * i.crouchDst, 0 <= tmpObj.hatIndex && (_.y += i.nameOffsetHat), !(1 <= 20 * (S = Math.max(.3, 1 - r.getDistance3D(b.x, b.y, b.z, _.x, _.y, _.z) / 600)) && n.frustum.containsPoint(_))) continue;
                 var distance = Math.abs(__this.object.rotation.y - __r.getDirection(__this.object.position.z, __this.object.position.x, tmpObj.z, tmpObj.x));
                 var inView = null == e.canSee(s, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);
-
-                if (inView && !threatFakeLag && (s.team == null || tmpObj.team != s.team)) {
+                var oldInView = null == e.canSee(lastPositionState, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);
+                if (oldInView && !threatFakeLag && (s.team == null || tmpObj.team != s.team)) {
                     var calcAngDistance = function(a, b) {
                         var requiredDireY = __r.getDirection(a.z, a.x, b.z, b.x);
                         var requiredDireX = __r.getXDir(a.x, a.y + i.playerHeight - a.crouchVal * i.crouchDst, a.z, b.x, b.y - 3, b.z);
@@ -66717,7 +66717,7 @@ window.addEventListener("keyup", function(e) {
                     var distanceToOld = calcAngDistance(tmpObj, lastPositionState);
                     var distanceToNew = calcAngDistance(tmpObj, __this.object.position);
 
-                    threatFakeLag = distanceToOld < 6 && distanceToNew >= 6;
+                    threatFakeLag = (distanceToOld < 6 && distanceToNew >= 6) || (oldInView && !inView);
                 }
 
                 if (distance < closestDistance && inView && tmpObj.health > 0 && !(s.team != null && tmpObj.team == s.team)) {
