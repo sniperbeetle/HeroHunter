@@ -68,4 +68,13 @@ window.chH = function(a) {
 };
 ```
 
-In an attempt to avoid updates which could potentially blacklist this cheat, this extension blocks all javascript files from krunker.io. Obviously this is also trivial to bypass: for example, they could be running javascript remotely since things like ```Array.from(document.scripts).filter(x=>x.src&&/js\/game\.[^\.]+\.js\?build=.+/.test(x.src)).length?'checkin':'loadin'``` are sent to the client through websockets - not necessarily for anti cheating.
+In an attempt to avoid updates which could potentially blacklist this cheat, this extension blocks all javascript files from krunker.io. Obviously this is also trivial to bypass: for example, they could be running javascript remotely since things like 
+
+```Array.from(document.scripts).filter(x=>x.src&&/js\/game\.[^\.]+\.js\?build=.+/.test(x.src)).length?'checkin':'loadin'```
+
+and 
+
+```document.querySelector("script[src*='js/game']")?'load':'loadin',false```
+
+
+are sent to the client through websockets - not necessarily for anti cheating.
