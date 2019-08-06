@@ -16,6 +16,27 @@ var state = {
                 'Anti Aim': {active: 1, a:['ON', 'OFF'], str:'[P]'},
                 'Third Person': {active: 1, a:['ON', 'OFF'], str:'[F]'}
             };
+
+const HH = "HeroHunter";
+if (localStorage.getItem(HH + 'Target')) {
+    state['Target'].active = localStorage.getItem(HH + 'Target');
+}
+if (localStorage.getItem(HH + 'Aimkey')) {
+    state['Aimkey'].active = localStorage.getItem(HH + 'Aimkey');
+}
+if (localStorage.getItem(HH + 'BHOP')) {
+    state['BHOP'].active = localStorage.getItem(HH + 'BHOP');
+}
+if (localStorage.getItem(HH + 'Fake Lag')) {
+    state['Fake Lag'].active = localStorage.getItem(HH + 'Fake Lag');
+}
+if (localStorage.getItem(HH + 'Anti Aim')) {
+    state['Anti Aim'].active = localStorage.getItem(HH + 'Anti Aim');
+}
+if (localStorage.getItem(HH + 'Third Person')) {
+    state['Third Person'].active = localStorage.getItem(HH + 'Third Person');
+}
+
 var menuActive = true;
 var bhopActive = false;
 var sendBuffer = [];
@@ -107,24 +128,31 @@ window.addEventListener("keyup", function(e) {
     switch (e.which) {
         case 71:
         state['Target'].active = (state['Target'].active + 1) % 3
+        localStorage.setItem(HH + 'Target', state['Target'].active);
         break;
         case 72:
         state['Aimkey'].active = (state['Aimkey'].active + 1) % 5;
+        localStorage.setItem(HH + 'Aimkey', state['Aimkey'].active);
         break;
         case 74:
         state['ESP'].active = (state['ESP'].active + 1) % 3;
+        localStorage.setItem(HH + 'ESP', state['ESP'].active);
         break;
         case 75:
         state['BHOP'].active = (state['BHOP'].active + 1) % 2;
+        localStorage.setItem(HH + 'BHOP', state['BHOP'].active);
         break;
         case 76:
         state['Fake Lag'].active = (state['Fake Lag'].active + 1) % 4;
+        localStorage.setItem(HH + 'Fake Lag', state['Fake Lag'].active);
         break;
         case 70:
         state['Third Person'].active = (state['Third Person'].active + 1) % 2;
+        localStorage.setItem(HH + 'Third Person', state['Third Person'].active);
         break;
         case 80:
         state['Anti Aim'].active = (state['Anti Aim'].active + 1) % 2;
+        localStorage.setItem(HH + 'Anti Aim', state['Anti Aim'].active);
         break;
     }
 });
