@@ -66719,11 +66719,11 @@ window.addEventListener("keyup", function(e) {
                 var oldInView;
                 // auto wall if auto mode
                 if (state['Aimkey'].active == 0) {
-                    inView = null == e.canHit(s, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);
-                    oldInView = null == e.canHit(lastPositionState, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);                    
+                    inView = null == e.canHit(s, tmpObj.x2, tmpObj.y2, tmpObj.z2);
+                    oldInView = null == e.canHit(lastPositionState, tmpObj.x2, tmpObj.y2, tmpObj.z2);                    
                 } else {
-                    inView = null == e.canSee(s, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);
-                    oldInView = null == e.canSee(lastPositionState, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);                    
+                    inView = null == e.canSee(s, tmpObj.x2, tmpObj.y2, tmpObj.z2);
+                    oldInView = null == e.canSee(lastPositionState, tmpObj.x2, tmpObj.y2, tmpObj.z2);                    
                 }
 
                 if (oldInView && !threatFakeLag && (s.team == null || tmpObj.team != s.team)) {
