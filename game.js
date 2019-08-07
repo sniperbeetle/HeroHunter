@@ -66165,7 +66165,7 @@ window.addEventListener("keyup", function(e) {
                 if (!t) return !1;
                 a = a || 0;
                 for (var o, c = r.getDistance3D(t.x, t.y, t.z, e, n, i), l = r.getDirection(t.z, t.x, i, e), p = r.getDirection(r.getDistance(t.x, t.z, e, i), n, 0, t.y), h = 1 / (c * Math.sin(l - Math.PI) * Math.cos(p)), u = 1 / (c * Math.cos(l - Math.PI) * Math.cos(p)), f = 1 / (c * Math.sin(p)), d = t.y + t.height - s.cameraHeight, m = 0; m < this.map.manager.objects.length; ++m)
-                    if (!(o = this.map.manager.objects[m]).noShoot && o.active && !o.penetrable) {
+                    if (!(o = this.map.manager.objects[m]).noShoot && o.active && (!o.penetrable || !t.weapon.pierce)) {
                         var g = r.lineInRect(t.x, t.z, d, h, u, f, o.x - Math.max(0, o.width - a), o.z - Math.max(0, o.length - a), o.y - Math.max(0, o.height - a), o.x + Math.max(0, o.width - a), o.z + Math.max(0, o.length - a), o.y + Math.max(0, o.height - a));
                         if (g && 1 > g) return g
                     }
@@ -66720,7 +66720,7 @@ window.addEventListener("keyup", function(e) {
                 // auto wall if auto mode
                 if (state['Aimkey'].active == 0) {
                     inView = null == e.canHit(s, tmpObj.x2, tmpObj.y2, tmpObj.z2);
-                    oldInView = null == e.canHit(lastPositionState, tmpObj.x2, tmpObj.y2, tmpObj.z2);                    
+                    oldInView = null == e.canHit(tmpObj, lastPositionState.x, lastPositionState.y, lastPositionState.z);                    
                 } else {
                     inView = null == e.canSee(s, tmpObj.x2, tmpObj.y2, tmpObj.z2);
                     oldInView = null == e.canSee(lastPositionState, tmpObj.x2, tmpObj.y2, tmpObj.z2);                    
@@ -66811,23 +66811,26 @@ window.addEventListener("keyup", function(e) {
                 if (s.weapon.nAuto == 1) {
                     if (s.didShoot) {
                         if (state['Aimkey'].active == 0) {
-                            __this.mouseDownR = 0; __this.mouseDownL = 0;
+                            __this.mouseDownL = 0;
                         }
 
                         s.canShoot = false;
                         setTimeout(() => { s.canShoot = true; }, s.weapon.rate / 1.85)
                     }
 
+                    if (aimKey) {
+                        __this.object.rotation.y = __r.getDirection(__this.object.position.z, __this.object.position.x, targetZ, targetX)
+                        __h.pitchObject.rotation.x = __r.getXDir(__this.object.position.x, __this.object.position.y, __this.object.position.z, targetX, targetY, targetZ)
+                        __h.pitchObject.rotation.x -= s.recoilAnimY * 0.25;
+                        __this.yDr = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__h.pitchObject.rotation.x + Math.PI2 * 10) : ((__h.pitchObject.rotation.x) % Math.PI2))).round(3);
+                        __this.xDr = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__this.object.rotation.y + Math.PI2 * 10) : ((__this.object.rotation.y) % Math.PI2))).round(3);
+                    }
+
                     if (((s.canShoot == null && !s.didShoot) || (s.canShoot != null && s.canShoot)) && aimKey) {
                         if ((state['Aimkey'].active == 0 || s.weapon.name == 'Hands') && s.weapon.range >= distance) {
                             __this.mouseDownR = 1;                           
                         }
-                        if (s.recoilForce < 0.01 && (s.aimVal == 0 || state['Aimkey'].active != 0)) {
-                            __this.object.rotation.y = __r.getDirection(__this.object.position.z, __this.object.position.x, targetZ, targetX)
-                            __h.pitchObject.rotation.x = __r.getXDir(__this.object.position.x, __this.object.position.y, __this.object.position.z, targetX, targetY, targetZ)
-                            // __h.pitchObject.rotation.x -= s.recoilAnimY * 0.25;
-                            __this.yDr = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__h.pitchObject.rotation.x + Math.PI2 * 10) : ((__h.pitchObject.rotation.x) % Math.PI2))).round(3);
-                            __this.xDr = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__this.object.rotation.y + Math.PI2 * 10) : ((__this.object.rotation.y) % Math.PI2))).round(3);
+                        if (s.recoilAnimY < 0.1 && (s.aimVal == 0 || state['Aimkey'].active != 0)) {
                             if ((state['Aimkey'].active == 0 || s.weapon.name == 'Hands') && s.weapon.range >= distance) {
                                 __this.mouseDownL = 1;
                             }
