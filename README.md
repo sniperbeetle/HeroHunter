@@ -33,6 +33,7 @@ Toggle menu on/off with insert/home/delete
 - [x] Box esp
 - [x] Third person
 - [x] Anti Aim
+- [x] Auto wall (penetrate)
 - [x] Everyday is sunny
 
 Gameplay: https://www.youtube.com/watch?v=-UGY3wrfor0
