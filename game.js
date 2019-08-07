@@ -66909,8 +66909,6 @@ window.addEventListener("keyup", function(e) {
         }
 
         var b = n.camera.getWorldPosition();
-        closest = null
-        var closestDistance = Number.POSITIVE_INFINITY;
         threatFakeLag = false;
         if ("none" == menuHolder.style.display && "none" == endUI.style.display) {
             __me = s;
