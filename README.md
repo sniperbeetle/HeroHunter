@@ -35,6 +35,7 @@ Toggle menu on/off with insert/home/delete
 - [x] Anti Aim
 - [x] Auto wall (penetrate)
 - [x] Everyday is sunny
+- [x] 360 bot
 
 Gameplay: https://www.youtube.com/watch?v=-UGY3wrfor0
 [![Alt text](https://github.com/hrt/KrunkerMultihack/blob/master/screenshot2.png?raw=true)](https://www.youtube.com/watch?v=-UGY3wrfor0)

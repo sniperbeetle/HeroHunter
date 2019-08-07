@@ -8,13 +8,14 @@ var __e;
 var supersecretsocket;
 var stringToInt = {'HEAD': 12, 'NECK': 10, 'CHEST': 8, 'ON': 1, 'ALL': 2, 'ENEMY': 1, 'OFF': null, 'MANUAL': false, 'AUTO': true, 'LITTLE': 300, 'TELEPORT': 2000, 'ON JUMP': -1}
 var state = {
-                'Target': {active: 1, a:['HEAD', 'NECK', 'CHEST'], str:'[G]'},
+                'Target': {active: 1, a:['HEAD', 'NECK', 'CHEST'], str:'[U]'},
                 'Aimkey': {active: 4, a:['AUTO', 'LMB', 'RMB', 'SMB', 'OFF'], str:'[H]'},
                 'ESP': {active: 2, a:['ENEMY', 'ALL', 'OFF'], str:'[J]'},
                 'BHOP': {active: 1, a:['AUTO', 'MANUAL'], str:'[K]'},
                 'Fake Lag': {active: 3, a:['LITTLE', 'TELEPORT', 'ON JUMP', 'OFF'], str:'[L]'},
                 'Anti Aim': {active: 1, a:['ON', 'OFF'], str:'[P]'},
-                'Third Person': {active: 1, a:['ON', 'OFF'], str:'[F]'}
+                'Third Person': {active: 1, a:['ON', 'OFF'], str:'[F]'},
+                '360': {active: 0, a:['ON', 'OFF'], str:'[O]'}
             };
 
 const HH = "HeroHunter";
@@ -39,6 +40,9 @@ if (localStorage.getItem(HH + 'Anti Aim')) {
 if (localStorage.getItem(HH + 'Third Person')) {
     state['Third Person'].active = parseInt(localStorage.getItem(HH + 'Third Person'));
 }
+if (localStorage.getItem(HH + '360')) {
+    state['360'].active = parseInt(localStorage.getItem(HH + '360'));
+}
 
 var menuActive = true;
 var bhopActive = false;
@@ -52,6 +56,19 @@ var ogL = 0;
 var ogR = 0;
 var loadedImages = {};
 var threatFakeLag = false;
+var spins = [];
+var spinTimer = 1800;
+var serverTickRate = 1e3 / 30;
+var spinTicks = 0;
+
+var saveSpin = function(e) {
+    spins.unshift(e), spins.length > spinTimer / serverTickRate && (spins.length = Math.round(spinTimer / serverTickRate))
+}
+
+var getSpin = function() {
+    for (var e = 0, n = 0; n < spins.length; ++n) e += spins[n];
+    return Math.abs(e * (180 / Math.PI))
+}
 
 var sendAllData = function(force) {
     var flushInterval = stringToInt[state['Fake Lag'].a[state['Fake Lag'].active]] ? stringToInt[state['Fake Lag'].a[state['Fake Lag'].active]] : 0;
@@ -129,7 +146,7 @@ window.addEventListener("keyup", function(e) {
         return;
     }
     switch (e.which) {
-        case 71:
+        case 85:
         state['Target'].active = (state['Target'].active + 1) % 3
         localStorage.setItem(HH + 'Target', state['Target'].active);
         break;
@@ -156,6 +173,10 @@ window.addEventListener("keyup", function(e) {
         case 80:
         state['Anti Aim'].active = (state['Anti Aim'].active + 1) % 2;
         localStorage.setItem(HH + 'Anti Aim', state['Anti Aim'].active);
+        break;
+        case 79:
+        state['360'].active = (state['360'].active + 1) % 2;
+        localStorage.setItem(HH + '360', state['360'].active);
         break;
     }
 });
@@ -62680,7 +62701,21 @@ window.addEventListener("keyup", function(e) {
             this.recon = a;
             var o = Math.min(t[1], i.dltMx) / this.deltaDiv;
             this.inputSN = t[0];
+
+            // 360
+            if ((stringToInt[state['360'].a[state['360'].active]] != null) && (getSpin() < 500 || (spinTicks % 2 != 0))) {
+                t[2] = this.xDire + Math.PI;
+                spinTicks += 1;
+            }
+
+            // movement fix
+            if ((stringToInt[state['360'].a[state['360'].active]] != null) && (spinTicks % 2 != 0)) {
+                t[4] = (t[4] + 4) % 8   
+            }
+
+            // 1 3 5 7 + 4 %8
             var c = n.getAngleDist(t[2], this.xDire);
+            saveSpin(c);
             e.saveSpin(this, c);
             var l = !a && this.isYou;
             if (l && (this.leanAnimX -= c * i.leanSens, this.leanAnimX = n.limit(this.leanAnimX, i.leanMax), this.leanAnimY -= n.getAngleDist(t[3], this.yDire) * i.leanSens, this.leanAnimY = n.limit(this.leanAnimY, i.leanMax), this.leanAnimX && (this.leanAnimX *= Math.pow(i.leanPull, o)), this.leanAnimY && (this.leanAnimY *= Math.pow(i.leanPull, o)), this.leanAnimZ && (this.leanAnimZ *= Math.pow(i.leanPullZ, o)), this.bobAnimZ && (this.bobAnimZ *= Math.pow(i.bobPullZ, o)), this.bobAnimY && (this.bobAnimY *= Math.pow(i.bobPullY, o)), this.recoilX && (this.recoilX *= Math.pow(i.leanPull, o)), this.recoilZ && (this.recoilZ *= Math.pow(i.leanPull, o)), this.inspecting && this.inspectX < Math.PI / 2.8 && (this.inspectX += .1 * (Math.PI / 2.8 - this.inspectX))), 2 == t[11] ? e.swapMelee(this, a) : 1 == t[11] ? e.swapSecondary(this, a) : 3 == t[11] ? e.swapWeapon(this, null, null, void 0, 0, a) : t[10] && e.swapWeapon(this, t[10], !1, void 0, void 0, a), a || (this.recoilForce && (this.recoilAnim += this.recoilForce * o, this.recoilAnimY += this.recoilForce * (this.weapon.recoilY || 1) * (1 - .3 * this.crouchVal) * o, this.recoilForce *= Math.pow(this.weapon.recoverF, o)), this.recoilAnim && (this.recoilAnim *= Math.pow(this.weapon.recover, o)), this.recoilAnimY && (this.recoilAnimY *= Math.pow(this.weapon.recoverY || this.weapon.recover, o))), this.xDire = (t[2] || 0).round(3), this.yDire = (t[3] || 0).round(3), this.oldX = this.x, this.oldY = this.y, this.oldZ = this.z, this.weapon.zoom && (!this.weapon.noAim || 0 < this.swapTime)) {
@@ -66713,7 +66748,7 @@ window.addEventListener("keyup", function(e) {
         // menu
         if (menuActive) {
             c.fillStyle = 'rgba(0,0,0,0.2)';
-            c.fillRect(10, 280, 20 + 310 - 50, 270);
+            c.fillRect(10, 280, 20 + 310 - 50, 300);
             var currentx = 20;
             var currenty = 320;
             c.font = "20px GameFont";
