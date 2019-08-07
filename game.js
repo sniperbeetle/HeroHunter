@@ -1,10 +1,11 @@
-var closest;
-var closest_outOfView;
 var __this;
 var __h;
 var __r;
 var __me;
 var __e;
+var __r;
+var __i;
+var __t;
 var supersecretsocket;
 var stringToInt = {'HEAD': 12, 'NECK': 10, 'CHEST': 8, 'ON': 1, 'ALL': 2, 'ENEMY': 1, 'OFF': null, 'MANUAL': false, 'AUTO': true, 'LITTLE': 300, 'TELEPORT': 2000, 'ON JUMP': -1}
 var state = {
@@ -60,7 +61,6 @@ var spins = [];
 var spinTimer = 1800;
 var serverTickRate = 1e3 / 30;
 var spinTicks = 0;
-
 var saveSpin = function(e) {
     spins.unshift(e), spins.length > spinTimer / serverTickRate && (spins.length = Math.round(spinTimer / serverTickRate))
 }
@@ -70,29 +70,27 @@ var getSpin = function() {
     return Math.abs(e * (180 / Math.PI))
 }
 
-var sendAllData = function(force) {
+var sendAllData = function() {
     var flushInterval = stringToInt[state['Fake Lag'].a[state['Fake Lag'].active]] ? stringToInt[state['Fake Lag'].a[state['Fake Lag'].active]] : 0;
     var msSinceLastFlush = (new Date()).getTime() - lastFlush.getTime();
     var letsFlush = msSinceLastFlush >= flushInterval;
     if (flushInterval == -1) {
         letsFlush = !__me || !__me.active || Math.abs(__me.yVel) < 0.005;
     }
-    letsFlush |= (force /*&& !__this.mouseDownX*/);
+    letsFlush |= __t && ((__this && lastShootState != __t[5]) ||  (__h && lastReloadState == 0 && __h.keys[__h.reloadKey] == 1) || (__this && lastScopeState != __t[6]) || threatFakeLag)
 
     if (supersecretsocket != null && sendBuffer.length > 0 && letsFlush) {
-        var inputsUpdated = false;
         for (var i = 0; i < sendBuffer.length; i++) {
             supersecretsocket.DLTQ.send(sendBuffer[i].data);
-            inputsUpdated |= sendBuffer[i].t == 'i';
+            if (sendBuffer[i].t == 'i') {
+                lastScopeState = __t[6];
+                lastReloadState = __h?(__h.keys[__h.reloadKey]) : 0;
+                lastShootState = __t[5];
+                lastPositionState = {x: __this.object.position.x, y: __this.object.position.y, z: __this.object.position.z, height: __me.height};
+                lastFlush = new Date();
+            }
         }
         sendBuffer.length = 0;
-        if (inputsUpdated && __this && __h && __me) {
-            lastScopeState = __this.mouseDownR;
-            lastReloadState = __h.keys[__h.reloadKey];
-            lastShootState = __this.mouseDownL;
-            lastPositionState = {x: __this.object.position.x, y: __this.object.position.y, z: __this.object.position.z, height: __me.height};
-            lastFlush = new Date();
-        }
     } else if (supersecretsocket == null) {
         setTimeout(function() {sendAllData(force);}, 50);
     }
@@ -62702,22 +62700,165 @@ window.addEventListener("keyup", function(e) {
             var o = Math.min(t[1], i.dltMx) / this.deltaDiv;
             this.inputSN = t[0];
 
+            var closest = null
+            var closestDistance = Number.POSITIVE_INFINITY;
+            threatFakeLag = false;
+
+            // target selector
+            if (__e) {
+                for (var w = 0; w < __e.players.list.length; ++w) {
+                    if (tmpObj = __e.players.list[w], !tmpObj.active) continue;
+                    if (tmpObj.isYou || !tmpObj.objInstances) continue;
+                    if (!__me || !__r || !__e || !__i || !__this) break;
+                    if (!__me.active) break;
+                    var distance = Math.abs(__this.object.rotation.y - __r.getDirection(__this.object.position.z, __this.object.position.x, tmpObj.z, tmpObj.x));
+
+                    var inView;
+                    var oldInView;
+                    // auto wall if auto mode
+                    if (state['Aimkey'].active == 0) {
+                        inView = null == __e.canHit(__me, tmpObj.x2, tmpObj.y2, tmpObj.z2);
+                        oldInView = null == __e.canHit(tmpObj, lastPositionState.x, lastPositionState.y, lastPositionState.z);                    
+                    } else {
+                        inView = null == __e.canSee(__me, tmpObj.x2, tmpObj.y2, tmpObj.z2);
+                        oldInView = null == __e.canSee(lastPositionState, tmpObj.x2, tmpObj.y2, tmpObj.z2);                    
+                    }
+
+                    if (oldInView && !threatFakeLag && (__me.team == null || tmpObj.team != __me.team)) {
+                        var calcAngDistance = function(a, b) {
+                            var requiredDireY = __r.getDirection(a.z, a.x, b.z, b.x);
+                            var requiredDireX = __r.getXDir(a.x, a.y + __i.playerHeight - a.crouchVal * __i.crouchDst, a.z, b.x, b.y - 3, b.z);
+                            var dx = (a.xDire - requiredDireY + Math.PI2 + Math.PI2) % Math.PI2;
+                            var dy = (a.yDire - requiredDireX + Math.PI2 + Math.PI2) % Math.PI;
+                            dx = Math.min(dx, Math.PI2 - dx)*180/Math.PI;
+                            dy = Math.min(dy, Math.PI - dy)*180/Math.PI;
+                            var distance = Math.sqrt(dx * dx + dy * dy);
+                            return distance;
+                        };
+
+                        var distanceToOld = calcAngDistance(tmpObj, lastPositionState);
+                        var distanceToNew = calcAngDistance(tmpObj, __this.object.position);
+
+                        threatFakeLag = (distanceToOld < 6 && distanceToNew >= 6) || (oldInView && !inView);
+                    }
+
+                    if (distance < closestDistance && inView && tmpObj.health > 0 && !(__me.team != null && tmpObj.team == __me.team)) {
+                        closestDistance = distance;
+                        closest = tmpObj
+                    }
+                }
+            }
+
+            var target = closest;
+            var aimKey;
+            if  (__this) {
+                if (state['Aimkey'].active == 0) {
+                    aimKey = true;
+                } else if (state['Aimkey'].active == 1) {
+                    aimKey = t[5];
+                } else if (state['Aimkey'].active == 2) {
+                    aimKey = t[6];
+                } else if (state['Aimkey'].active == 3) {
+                    aimKey = __this.mouseDownX;
+                } else if (state['Aimkey'].active == 4) {
+                    aimKey = false;
+                }
+            } else {
+                aimKey = false;
+            }
+
+            // aimbot
+            if (target != null && target.health > 0 && target.active && __h != null && __r != null && __this != null && __me != null && __me.isYou && __me.active && __me.health > 0 && aimKey && !isNaN(target.y2) && __me.ammos[__me.weaponIndex] != 0) {
+                var targetX = target.x2;
+                var targetY = target.y2 + stringToInt[state['Target'].a[state['Target'].active]] - 2 - target.crouchVal * __i.crouchDst; // random number fixed for assault rifle
+                var targetZ = target.z2;
+                var distance = __r.getDistance3D(targetX, targetY, targetZ, __me.x, __me.y, __me.z);
+                if (__me.weapon.nAuto == 1) {
+                    if (__me.didShoot) {
+                        if (state['Aimkey'].active == 0) {
+                            t[5] = 0;
+                        }
+
+                        __me.canShoot = false;
+                        setTimeout(() => { __me.canShoot = true; }, __me.weapon.rate / 1.85)
+                    }
+
+                    if (aimKey) {
+                        __this.object.rotation.y = __r.getDirection(__this.object.position.z, __this.object.position.x, targetZ, targetX)
+                        __h.pitchObject.rotation.x = __r.getXDir(__this.object.position.x, __this.object.position.y, __this.object.position.z, targetX, targetY, targetZ)
+                        __h.pitchObject.rotation.x -= __me.recoilAnimY * 0.25;
+                        t[3] = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__h.pitchObject.rotation.x + Math.PI2 * 10) : ((__h.pitchObject.rotation.x) % Math.PI2))).round(3);
+                        t[2] = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__this.object.rotation.y + Math.PI2 * 10) : ((__this.object.rotation.y) % Math.PI2))).round(3);
+                    }
+
+                    if (((__me.canShoot == null && !__me.didShoot) || (__me.canShoot != null && __me.canShoot)) && aimKey) {
+                        if ((state['Aimkey'].active == 0 || __me.weapon.name == 'Hands') && __me.weapon.range >= distance) {
+                            t[6] = 1;                           
+                        }
+                        if (__me.recoilAnimY < 0.1 && (__me.aimVal == 0 || state['Aimkey'].active != 0)) {
+                            if ((state['Aimkey'].active == 0 || __me.weapon.name == 'Hands') && __me.weapon.range >= distance) {
+                                t[5] = 1;
+                            }
+                        }
+                    }
+                } else if (aimKey) {
+                    if ((state['Aimkey'].active == 0 || __me.weapon.name == 'Hands') && __me.weapon.range >= distance) {
+                        t[6] = 1;
+                    }
+                    __this.object.rotation.y = __r.getDirection(__this.object.position.z, __this.object.position.x, targetZ, targetX)
+                    __h.pitchObject.rotation.x = __r.getXDir(__this.object.position.x, __this.object.position.y, __this.object.position.z, targetX, targetY, targetZ)
+                    __h.pitchObject.rotation.x -= __me.recoilAnimY * 0.25;
+                    t[3] = ((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__h.pitchObject.rotation.x + Math.PI2 * 10) : (__h.pitchObject.rotation.x % Math.PI2)).round(3);
+                    t[2] = ((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__this.object.rotation.y + Math.PI2 * 10) : (__this.object.rotation.y % Math.PI2)).round(3);
+                    if ((state['Aimkey'].active == 0 || __me.weapon.name == 'Hands') && __me.weapon.range >= distance) {
+                        t[5] = 1;
+                    }
+                }
+            } else if (__h != null && __this != null && __me != null && (state['Aimkey'].active == 0 || (__me && __me.weapon.name == 'Hands'))) {
+                t[5] = ogL;
+                t[6] = ogR;
+            }
+
+
+            var c = n.getAngleDist(t[2], this.xDire);
+
             // 360
-            if ((stringToInt[state['360'].a[state['360'].active]] != null) && (getSpin() < 500 || (spinTicks % 2 != 0))) {
+            if (stringToInt[state['360'].a[state['360'].active]] && ((getSpin() + (c * 180 / Math.PI)) < 360 || (spinTicks % 2 != 0))) {
                 t[2] = this.xDire + Math.PI;
                 spinTicks += 1;
             }
 
             // movement fix
-            if ((stringToInt[state['360'].a[state['360'].active]] != null) && (spinTicks % 2 != 0)) {
-                t[4] = (t[4] + 4) % 8   
+            if (stringToInt[state['360'].a[state['360'].active]] && (spinTicks % 2 != 0)) {
+                if (t[4] >= 0) {
+                    t[4] = (t[4] + 4) % 8   
+                }
+                t[5] = 0;
             }
 
-            var c = n.getAngleDist(t[2], this.xDire);
+            c = n.getAngleDist(t[2], this.xDire);
+
             saveSpin(c);
             e.saveSpin(this, c);
 
+            // bhop
+            if (__h && __me && (bhopActive || stringToInt[state['BHOP'].a[state['BHOP'].active]])) {
+                __h.keys[__h.crouchKey] = (__me.canSlide && !__me.didJump);
+                if (!__me.didJump) {
+                    __h.keys[__h.jumpKey] = 1;
+                } else {
+                    __h.keys[__h.jumpKey] = 0;
+                }
+            }
 
+            // auto reload
+            if (__me && __h && __me.ammos[__me.weaponIndex] == 0 && __h.keys[__h.reloadKey] == 0) {
+                t[5] = 0;
+                t[6] = 0;
+                __h.keys[__h.reloadKey] = 1
+            } else if (__h) {
+                __h.keys[__h.reloadKey] = 0
+            }
 
             var l = !a && this.isYou;
             if (l && (this.leanAnimX -= c * i.leanSens, this.leanAnimX = n.limit(this.leanAnimX, i.leanMax), this.leanAnimY -= n.getAngleDist(t[3], this.yDire) * i.leanSens, this.leanAnimY = n.limit(this.leanAnimY, i.leanMax), this.leanAnimX && (this.leanAnimX *= Math.pow(i.leanPull, o)), this.leanAnimY && (this.leanAnimY *= Math.pow(i.leanPull, o)), this.leanAnimZ && (this.leanAnimZ *= Math.pow(i.leanPullZ, o)), this.bobAnimZ && (this.bobAnimZ *= Math.pow(i.bobPullZ, o)), this.bobAnimY && (this.bobAnimY *= Math.pow(i.bobPullY, o)), this.recoilX && (this.recoilX *= Math.pow(i.leanPull, o)), this.recoilZ && (this.recoilZ *= Math.pow(i.leanPull, o)), this.inspecting && this.inspectX < Math.PI / 2.8 && (this.inspectX += .1 * (Math.PI / 2.8 - this.inspectX))), 2 == t[11] ? e.swapMelee(this, a) : 1 == t[11] ? e.swapSecondary(this, a) : 3 == t[11] ? e.swapWeapon(this, null, null, void 0, 0, a) : t[10] && e.swapWeapon(this, t[10], !1, void 0, void 0, a), a || (this.recoilForce && (this.recoilAnim += this.recoilForce * o, this.recoilAnimY += this.recoilForce * (this.weapon.recoilY || 1) * (1 - .3 * this.crouchVal) * o, this.recoilForce *= Math.pow(this.weapon.recoverF, o)), this.recoilAnim && (this.recoilAnim *= Math.pow(this.weapon.recover, o)), this.recoilAnimY && (this.recoilAnimY *= Math.pow(this.weapon.recoverY || this.weapon.recover, o))), this.xDire = (t[2] || 0).round(3), this.yDire = (t[3] || 0).round(3), this.oldX = this.x, this.oldY = this.y, this.oldZ = this.z, this.weapon.zoom && (!this.weapon.noAim || 0 < this.swapTime)) {
@@ -62802,7 +62943,8 @@ window.addEventListener("keyup", function(e) {
                     this.didShoot && !t[5] && (this.didShoot = !1), !this.didShoot && t[5] && (B = !0), B && 0 >= this.reloads[this.weaponIndex] && 0 >= this.swapTime && 0 >= this.reloadTimer && (this.noMovTimer = 0, this.weapon.melee ? e.melee(this) : 0 < this.ammos[this.weaponIndex] ? e.shoot(this, t) : e.reload(this))
                 }
             }
-            a && t.velObj && (this.xVel -= t.velObj.x, this.zVel -= t.velObj.y, this.yVel -= t.velObj.z, this.onGround = !1), e.playerCollisions(this), e.updateInteract(this, x)
+            a && t.velObj && (this.xVel -= t.velObj.x, this.zVel -= t.velObj.y, this.yVel -= t.velObj.z, this.onGround = !1), e.playerCollisions(this), e.updateInteract(this, x);
+            __t = t;
         }, this.collides = function(t) {
             return this.x - this.scale < t.x + t.width && this.x + this.scale > t.x - t.width && this.z - this.scale < t.z + t.length && this.z + this.scale > t.z - t.length && this.y <= t.y + t.height + (t.isBorder ? i.borderH : 0) && this.y + this.height >= t.y - t.height
         }, this.update = function(t, r) {
@@ -62852,7 +62994,7 @@ window.addEventListener("keyup", function(e) {
         }, this.saveSpin = function(t, e) {
             l && (t.spins.unshift(e), t.spins.length > c.spinTimer / c.serverTickRate && (t.spins.length = Math.round(c.spinTimer / c.serverTickRate)))
         }, this.getSpin = function(t) {
-            for (var e = 0, n = 0; n < t.spins.length; ++n) e += t.spins[n];
+            for (var e = 0, n = 0; n < (Math.round(c.spinTimer / c.serverTickRate) - 1); ++n) e += t.spins[n];
             return Math.abs(e * (180 / Math.PI))
         }, this.storeState = function(e) {
             e.stateHistory.unshift({
@@ -66043,8 +66185,7 @@ window.addEventListener("keyup", function(e) {
             var n = r.WGHKWl([t, e], this.ahNum);
             supersecretsocket = this;
             sendBuffer.push({t: t, e: e, data: n});
-            var flush = (__this && lastShootState != __this.mouseDownL) ||  (__h && lastReloadState == 0 && __h.keys[__h.reloadKey] == 1) || (__this && lastScopeState != __this.mouseDownR) || threatFakeLag;
-            sendAllData(flush);
+            sendAllData();
         },
         socketReady: function() {
             return this.DLTQ && this.connected
@@ -66774,6 +66915,8 @@ window.addEventListener("keyup", function(e) {
         if ("none" == menuHolder.style.display && "none" == endUI.style.display) {
             __me = s;
             __e = e;
+            __r = r;
+            __i = i;
             for (var w = 0; w < e.players.list.length; ++w) {
                 if (tmpObj = e.players.list[w], !tmpObj.active) continue;
                 if (tmpObj.isYou || !tmpObj.objInstances) continue;
@@ -66781,42 +66924,8 @@ window.addEventListener("keyup", function(e) {
                 if (!s.active) break;
                 if (s.team != null && tmpObj.team == s.team && stringToInt[state['ESP'].a[state['ESP'].active]] == 1) continue; // why would we want team mate esp
                 if ((_ = tmpObj.objInstances.position.clone()).y += i.playerHeight + i.nameOffset - tmpObj.crouchVal * i.crouchDst, 0 <= tmpObj.hatIndex && (_.y += i.nameOffsetHat), !(1 <= 20 * (S = Math.max(.3, 1 - r.getDistance3D(b.x, b.y, b.z, _.x, _.y, _.z) / 600)) && n.frustum.containsPoint(_))) continue;
-                var distance = Math.abs(__this.object.rotation.y - __r.getDirection(__this.object.position.z, __this.object.position.x, tmpObj.z, tmpObj.x));
 
-                var inView;
-                var oldInView;
-                // auto wall if auto mode
-                if (state['Aimkey'].active == 0) {
-                    inView = null == e.canHit(s, tmpObj.x2, tmpObj.y2, tmpObj.z2);
-                    oldInView = null == e.canHit(tmpObj, lastPositionState.x, lastPositionState.y, lastPositionState.z);                    
-                } else {
-                    inView = null == e.canSee(s, tmpObj.x2, tmpObj.y2, tmpObj.z2);
-                    oldInView = null == e.canSee(lastPositionState, tmpObj.x2, tmpObj.y2, tmpObj.z2);                    
-                }
-
-                if (oldInView && !threatFakeLag && (s.team == null || tmpObj.team != s.team)) {
-                    var calcAngDistance = function(a, b) {
-                        var requiredDireY = __r.getDirection(a.z, a.x, b.z, b.x);
-                        var requiredDireX = __r.getXDir(a.x, a.y + i.playerHeight - a.crouchVal * i.crouchDst, a.z, b.x, b.y - 3, b.z);
-                        var dx = (a.xDire - requiredDireY + Math.PI2 + Math.PI2) % Math.PI2;
-                        var dy = (a.yDire - requiredDireX + Math.PI2 + Math.PI2) % Math.PI;
-                        dx = Math.min(dx, Math.PI2 - dx)*180/Math.PI;
-                        dy = Math.min(dy, Math.PI - dy)*180/Math.PI;
-                        var distance = Math.sqrt(dx * dx + dy * dy);
-                        return distance;
-                    };
-
-                    var distanceToOld = calcAngDistance(tmpObj, lastPositionState);
-                    var distanceToNew = calcAngDistance(tmpObj, __this.object.position);
-
-                    threatFakeLag = (distanceToOld < 6 && distanceToNew >= 6) || (oldInView && !inView);
-                }
-
-                if (distance < closestDistance && inView && tmpObj.health > 0 && !(s.team != null && tmpObj.team == s.team)) {
-                    closestDistance = distance;
-                    closest = tmpObj
-                }
-
+                // esp
                 if (stringToInt[state['ESP'].a[state['ESP'].active]] || tmpObj.inView)
                 {
                     c.save(), _.project(n.camera), c.beginPath(), c.moveTo(g/2, v/2), _.x = (_.x + 1) / 2, _.y = (_.y + 1) / 2, c.translate(g * _.x, v * (1 - _.y)), c.strokeStyle = "rgba(255, 255, 255, 0.4)", c.scale(S, S), c.lineTo(-60, -16), c.stroke(), c.fillStyle = "rgba(0, 0, 0, 0.8)", c.fillRect(-60, -16, 120, 16), m.dynamicHP && tmpObj.hpChase > tmpObj.health && (c.fillStyle = "#FFFFFF", c.fillRect(-60, -16, tmpObj.hpChase / tmpObj.maxHealth * 120, 16));
@@ -66851,97 +66960,6 @@ window.addEventListener("keyup", function(e) {
 
                 }
             }
-
-            var target = closest;
-            var aimKey;
-            if  (__this) {
-                if (state['Aimkey'].active == 0) {
-                    aimKey = true;
-                } else if (state['Aimkey'].active == 1) {
-                    aimKey = __this.mouseDownL;
-                } else if (state['Aimkey'].active == 2) {
-                    aimKey = __this.mouseDownR;
-                } else if (state['Aimkey'].active == 3) {
-                    aimKey = __this.mouseDownX;
-                } else if (state['Aimkey'].active == 4) {
-                    aimKey = false;
-                }
-            } else {
-                aimKey = false;
-            }
-
-            // aimbot
-            if (target != null && target.health > 0 && target.active && __h != null && __r != null && __this != null && s != null && s.isYou && s.active && s.health > 0 && aimKey && !isNaN(target.y2) && s.ammos[s.weaponIndex] != 0) {
-                var targetX = target.x2;
-                var targetY = target.y2 + stringToInt[state['Target'].a[state['Target'].active]] - 2 - target.crouchVal * i.crouchDst; // random number fixed for assault rifle
-                var targetZ = target.z2;
-                var distance = __r.getDistance3D(targetX, targetY, targetZ, s.x, s.y, s.z);
-                if (s.weapon.nAuto == 1) {
-                    if (s.didShoot) {
-                        if (state['Aimkey'].active == 0) {
-                            __this.mouseDownL = 0;
-                        }
-
-                        s.canShoot = false;
-                        setTimeout(() => { s.canShoot = true; }, s.weapon.rate / 1.85)
-                    }
-
-                    if (aimKey) {
-                        __this.object.rotation.y = __r.getDirection(__this.object.position.z, __this.object.position.x, targetZ, targetX)
-                        __h.pitchObject.rotation.x = __r.getXDir(__this.object.position.x, __this.object.position.y, __this.object.position.z, targetX, targetY, targetZ)
-                        __h.pitchObject.rotation.x -= s.recoilAnimY * 0.25;
-                        __this.yDr = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__h.pitchObject.rotation.x + Math.PI2 * 10) : ((__h.pitchObject.rotation.x) % Math.PI2))).round(3);
-                        __this.xDr = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__this.object.rotation.y + Math.PI2 * 10) : ((__this.object.rotation.y) % Math.PI2))).round(3);
-                    }
-
-                    if (((s.canShoot == null && !s.didShoot) || (s.canShoot != null && s.canShoot)) && aimKey) {
-                        if ((state['Aimkey'].active == 0 || s.weapon.name == 'Hands') && s.weapon.range >= distance) {
-                            __this.mouseDownR = 1;                           
-                        }
-                        if (s.recoilAnimY < 0.1 && (s.aimVal == 0 || state['Aimkey'].active != 0)) {
-                            if ((state['Aimkey'].active == 0 || s.weapon.name == 'Hands') && s.weapon.range >= distance) {
-                                __this.mouseDownL = 1;
-                            }
-                        }
-                    }
-                } else if (aimKey) {
-                    if ((state['Aimkey'].active == 0 || s.weapon.name == 'Hands') && s.weapon.range >= distance) {
-                        __this.mouseDownR = 1;
-                    }
-                    __this.object.rotation.y = __r.getDirection(__this.object.position.z, __this.object.position.x, targetZ, targetX)
-                    __h.pitchObject.rotation.x = __r.getXDir(__this.object.position.x, __this.object.position.y, __this.object.position.z, targetX, targetY, targetZ)
-                    __h.pitchObject.rotation.x -= s.recoilAnimY * 0.25;
-                    __this.yDr = ((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__h.pitchObject.rotation.x + Math.PI2 * 10) : (__h.pitchObject.rotation.x % Math.PI2)).round(3);
-                    __this.xDr = ((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__this.object.rotation.y + Math.PI2 * 10) : (__this.object.rotation.y % Math.PI2)).round(3);
-                    if ((state['Aimkey'].active == 0 || s.weapon.name == 'Hands') && s.weapon.range >= distance) {
-                        __this.mouseDownL = 1;
-                    }
-                }
-            } else if (__h != null && __this != null && s != null && (state['Aimkey'].active == 0 || (s && s.weapon.name == 'Hands'))) {
-                __this.mouseDownL = ogL;
-                __this.mouseDownR = ogR;
-            }
-
-
-            // auto reload
-            if (s && __h && s.ammos[s.weaponIndex] == 0 && __h.keys[__h.reloadKey] == 0) {
-                __this.mouseDownL = 0;
-                __this.mouseDownR = 0;
-                __h.keys[__h.reloadKey] = 1
-            } else if (__h) {
-                __h.keys[__h.reloadKey] = 0
-            }
-
-            // bhop
-            if (__h && s && (bhopActive || stringToInt[state['BHOP'].a[state['BHOP'].active]])) {
-                __h.keys[__h.crouchKey] = (s.canSlide && !s.didJump);
-                if (!s.didJump) {
-                    __h.keys[__h.jumpKey] = 1;
-                } else {
-                    __h.keys[__h.jumpKey] = 0;
-                }
-            }
-
             
         }
 
