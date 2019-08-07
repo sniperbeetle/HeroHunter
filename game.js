@@ -16,6 +16,30 @@ var state = {
                 'Anti Aim': {active: 1, a:['ON', 'OFF'], str:'[P]'},
                 'Third Person': {active: 1, a:['ON', 'OFF'], str:'[F]'}
             };
+
+const HH = "HeroHunter";
+if (localStorage.getItem(HH + 'Target')) {
+    state['Target'].active = parseInt(localStorage.getItem(HH + 'Target'));
+}
+if (localStorage.getItem(HH + 'Aimkey')) {
+    state['Aimkey'].active = parseInt(localStorage.getItem(HH + 'Aimkey'));
+}
+if (localStorage.getItem(HH + 'ESP')) {
+    state['ESP'].active = parseInt(localStorage.getItem(HH + 'ESP'));
+}
+if (localStorage.getItem(HH + 'BHOP')) {
+    state['BHOP'].active = parseInt(localStorage.getItem(HH + 'BHOP'));
+}
+if (localStorage.getItem(HH + 'Fake Lag')) {
+    state['Fake Lag'].active = parseInt(localStorage.getItem(HH + 'Fake Lag'));
+}
+if (localStorage.getItem(HH + 'Anti Aim')) {
+    state['Anti Aim'].active = parseInt(localStorage.getItem(HH + 'Anti Aim'));
+}
+if (localStorage.getItem(HH + 'Third Person')) {
+    state['Third Person'].active = parseInt(localStorage.getItem(HH + 'Third Person'));
+}
+
 var menuActive = true;
 var bhopActive = false;
 var sendBuffer = [];
@@ -23,7 +47,7 @@ var lastShootState = 0;
 var lastScopeState = 0;
 var lastReloadState = 0;
 var lastFlush = new Date();
-var lastPositionState = {x: 0, y: 0, z: 0};
+var lastPositionState = {x: 0, y: 0, z: 0, height: 0};
 var ogL = 0;
 var ogR = 0;
 var loadedImages = {};
@@ -36,7 +60,7 @@ var sendAllData = function(force) {
     if (flushInterval == -1) {
         letsFlush = !__me || !__me.active || Math.abs(__me.yVel) < 0.005;
     }
-    letsFlush |= force;
+    letsFlush |= (force /*&& !__this.mouseDownX*/);
 
     if (supersecretsocket != null && sendBuffer.length > 0 && letsFlush) {
         var inputsUpdated = false;
@@ -45,11 +69,11 @@ var sendAllData = function(force) {
             inputsUpdated |= sendBuffer[i].t == 'i';
         }
         sendBuffer.length = 0;
-        if (inputsUpdated && __this && __h) {
+        if (inputsUpdated && __this && __h && __me) {
             lastScopeState = __this.mouseDownR;
             lastReloadState = __h.keys[__h.reloadKey];
             lastShootState = __this.mouseDownL;
-            lastPositionState = {x: __this.object.position.x, y: __this.object.position.y, z: __this.object.position.z};
+            lastPositionState = {x: __this.object.position.x, y: __this.object.position.y, z: __this.object.position.z, height: __me.height};
             lastFlush = new Date();
         }
     } else if (supersecretsocket == null) {
@@ -107,24 +131,31 @@ window.addEventListener("keyup", function(e) {
     switch (e.which) {
         case 71:
         state['Target'].active = (state['Target'].active + 1) % 3
+        localStorage.setItem(HH + 'Target', state['Target'].active);
         break;
         case 72:
         state['Aimkey'].active = (state['Aimkey'].active + 1) % 5;
+        localStorage.setItem(HH + 'Aimkey', state['Aimkey'].active);
         break;
         case 74:
         state['ESP'].active = (state['ESP'].active + 1) % 3;
+        localStorage.setItem(HH + 'ESP', state['ESP'].active);
         break;
         case 75:
         state['BHOP'].active = (state['BHOP'].active + 1) % 2;
+        localStorage.setItem(HH + 'BHOP', state['BHOP'].active);
         break;
         case 76:
         state['Fake Lag'].active = (state['Fake Lag'].active + 1) % 4;
+        localStorage.setItem(HH + 'Fake Lag', state['Fake Lag'].active);
         break;
         case 70:
         state['Third Person'].active = (state['Third Person'].active + 1) % 2;
+        localStorage.setItem(HH + 'Third Person', state['Third Person'].active);
         break;
         case 80:
         state['Anti Aim'].active = (state['Anti Aim'].active + 1) % 2;
+        localStorage.setItem(HH + 'Anti Aim', state['Anti Aim'].active);
         break;
     }
 });
@@ -66161,6 +66192,20 @@ window.addEventListener("keyup", function(e) {
                     if (y) return r.getDistance3D(t.x, t.y, t.z, y.x, y.z, -y.y)
                 }
                 return null
+            }, this.canHit = function(t, e, n, i, a) {
+                if (!t) return !1;
+                a = a || 0;
+                for (var o, c = r.getDistance3D(t.x, t.y, t.z, e, n, i), l = r.getDirection(t.z, t.x, i, e), p = r.getDirection(r.getDistance(t.x, t.z, e, i), n, 0, t.y), h = 1 / (c * Math.sin(l - Math.PI) * Math.cos(p)), u = 1 / (c * Math.cos(l - Math.PI) * Math.cos(p)), f = 1 / (c * Math.sin(p)), d = t.y + t.height - s.cameraHeight, m = 0; m < this.map.manager.objects.length; ++m)
+                    if (!(o = this.map.manager.objects[m]).noShoot && o.active && (!o.penetrable || !t.weapon.pierce)) {
+                        var g = r.lineInRect(t.x, t.z, d, h, u, f, o.x - Math.max(0, o.width - a), o.z - Math.max(0, o.length - a), o.y - Math.max(0, o.height - a), o.x + Math.max(0, o.width - a), o.z + Math.max(0, o.length - a), o.y + Math.max(0, o.height - a));
+                        if (g && 1 > g) return g
+                    }
+                var v = this.map.terrain;
+                if (v) {
+                    var y = v.raycast(t.x, -t.z, d, 1 / h, -1 / u, 1 / f);
+                    if (y) return r.getDistance3D(t.x, t.y, t.z, y.x, y.z, -y.y)
+                }
+                return null
             }, this.updateAccounts = function() {
                 for (var t = [], e = 0; e < this.players.list.length; ++e)(y = this.players.list[e]).account && !y.account.hack && (y.account.timePlayed += y.playTime || 0, null == this.host && (y.account.games++, y.account.kills += y.kills, y.account.deaths += y.deaths, y.account.score += y.score, y.didWin && y.account.wins++), m.send(y.id, "ua", y.account.getData()), t.push(y));
                 t.length && this.saveRewards(t)
@@ -66700,9 +66745,19 @@ window.addEventListener("keyup", function(e) {
                 if (s.team != null && tmpObj.team == s.team && stringToInt[state['ESP'].a[state['ESP'].active]] == 1) continue; // why would we want team mate esp
                 if ((_ = tmpObj.objInstances.position.clone()).y += i.playerHeight + i.nameOffset - tmpObj.crouchVal * i.crouchDst, 0 <= tmpObj.hatIndex && (_.y += i.nameOffsetHat), !(1 <= 20 * (S = Math.max(.3, 1 - r.getDistance3D(b.x, b.y, b.z, _.x, _.y, _.z) / 600)) && n.frustum.containsPoint(_))) continue;
                 var distance = Math.abs(__this.object.rotation.y - __r.getDirection(__this.object.position.z, __this.object.position.x, tmpObj.z, tmpObj.x));
-                var inView = null == e.canSee(s, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);
 
-                if (inView && !threatFakeLag && (s.team == null || tmpObj.team != s.team)) {
+                var inView;
+                var oldInView;
+                // auto wall if auto mode
+                if (state['Aimkey'].active == 0) {
+                    inView = null == e.canHit(s, tmpObj.x2, tmpObj.y2, tmpObj.z2);
+                    oldInView = null == e.canHit(tmpObj, lastPositionState.x, lastPositionState.y, lastPositionState.z);                    
+                } else {
+                    inView = null == e.canSee(s, tmpObj.x2, tmpObj.y2, tmpObj.z2);
+                    oldInView = null == e.canSee(lastPositionState, tmpObj.x2, tmpObj.y2, tmpObj.z2);                    
+                }
+
+                if (oldInView && !threatFakeLag && (s.team == null || tmpObj.team != s.team)) {
                     var calcAngDistance = function(a, b) {
                         var requiredDireY = __r.getDirection(a.z, a.x, b.z, b.x);
                         var requiredDireX = __r.getXDir(a.x, a.y + i.playerHeight - a.crouchVal * i.crouchDst, a.z, b.x, b.y - 3, b.z);
@@ -66717,7 +66772,7 @@ window.addEventListener("keyup", function(e) {
                     var distanceToOld = calcAngDistance(tmpObj, lastPositionState);
                     var distanceToNew = calcAngDistance(tmpObj, __this.object.position);
 
-                    threatFakeLag = distanceToOld < 6 && distanceToNew >= 6;
+                    threatFakeLag = (distanceToOld < 6 && distanceToNew >= 6) || (oldInView && !inView);
                 }
 
                 if (distance < closestDistance && inView && tmpObj.health > 0 && !(s.team != null && tmpObj.team == s.team)) {
@@ -66787,23 +66842,26 @@ window.addEventListener("keyup", function(e) {
                 if (s.weapon.nAuto == 1) {
                     if (s.didShoot) {
                         if (state['Aimkey'].active == 0) {
-                            __this.mouseDownR = 0; __this.mouseDownL = 0;
+                            __this.mouseDownL = 0;
                         }
 
                         s.canShoot = false;
                         setTimeout(() => { s.canShoot = true; }, s.weapon.rate / 1.85)
                     }
 
+                    if (aimKey) {
+                        __this.object.rotation.y = __r.getDirection(__this.object.position.z, __this.object.position.x, targetZ, targetX)
+                        __h.pitchObject.rotation.x = __r.getXDir(__this.object.position.x, __this.object.position.y, __this.object.position.z, targetX, targetY, targetZ)
+                        __h.pitchObject.rotation.x -= s.recoilAnimY * 0.25;
+                        __this.yDr = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__h.pitchObject.rotation.x + Math.PI2 * 10) : ((__h.pitchObject.rotation.x) % Math.PI2))).round(3);
+                        __this.xDr = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__this.object.rotation.y + Math.PI2 * 10) : ((__this.object.rotation.y) % Math.PI2))).round(3);
+                    }
+
                     if (((s.canShoot == null && !s.didShoot) || (s.canShoot != null && s.canShoot)) && aimKey) {
                         if ((state['Aimkey'].active == 0 || s.weapon.name == 'Hands') && s.weapon.range >= distance) {
                             __this.mouseDownR = 1;                           
                         }
-                        if (s.recoilForce < 0.01 && (s.aimVal == 0 || state['Aimkey'].active != 0)) {
-                            __this.object.rotation.y = __r.getDirection(__this.object.position.z, __this.object.position.x, targetZ, targetX)
-                            __h.pitchObject.rotation.x = __r.getXDir(__this.object.position.x, __this.object.position.y, __this.object.position.z, targetX, targetY, targetZ)
-                            // __h.pitchObject.rotation.x -= s.recoilAnimY * 0.25;
-                            __this.yDr = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__h.pitchObject.rotation.x + Math.PI2 * 10) : ((__h.pitchObject.rotation.x) % Math.PI2))).round(3);
-                            __this.xDr = (((stringToInt[state['Anti Aim'].a[state['Anti Aim'].active]] != null) ? (__this.object.rotation.y + Math.PI2 * 10) : ((__this.object.rotation.y) % Math.PI2))).round(3);
+                        if (s.recoilAnimY < 0.1 && (s.aimVal == 0 || state['Aimkey'].active != 0)) {
                             if ((state['Aimkey'].active == 0 || s.weapon.name == 'Hands') && s.weapon.range >= distance) {
                                 __this.mouseDownL = 1;
                             }
@@ -67180,7 +67238,13 @@ window.addEventListener("keyup", function(e) {
             e.src = t, ut.push(e)
         }
     });
-    const ft = eval;
+    var ft = function(fn) {
+        if (fn !== `document.querySelector("script[src*='js/game']")?'load':'loadin'`) {
+            window.alert("Please report this suspicious anti cheat behavior to HeroHunter: " + fn);
+        } else {
+            return eval.apply(this, [`document.querySelector("script[src*='js/game']")?'load':'loadin'`])
+        }
+    };
     Math.PI2 = 2 * Math.PI, Math.lerpAngle = function(t, e, n) {
         Math.abs(e - t) > Math.PI && (t > e ? e += Math.PI2 : t += Math.PI2);
         var i = e + (t - e) * n;
