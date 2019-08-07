@@ -66714,8 +66714,18 @@ window.addEventListener("keyup", function(e) {
                 if (s.team != null && tmpObj.team == s.team && stringToInt[state['ESP'].a[state['ESP'].active]] == 1) continue; // why would we want team mate esp
                 if ((_ = tmpObj.objInstances.position.clone()).y += i.playerHeight + i.nameOffset - tmpObj.crouchVal * i.crouchDst, 0 <= tmpObj.hatIndex && (_.y += i.nameOffsetHat), !(1 <= 20 * (S = Math.max(.3, 1 - r.getDistance3D(b.x, b.y, b.z, _.x, _.y, _.z) / 600)) && n.frustum.containsPoint(_))) continue;
                 var distance = Math.abs(__this.object.rotation.y - __r.getDirection(__this.object.position.z, __this.object.position.x, tmpObj.z, tmpObj.x));
-                var inView = null == e.canHit(s, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);
-                var oldInView = null == e.canHit(lastPositionState, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);
+
+                var inView;
+                var oldInView;
+                // auto wall if auto mode
+                if (state['Aimkey'].active == 0) {
+                    inView = null == e.canHit(s, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);
+                    oldInView = null == e.canHit(lastPositionState, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);                    
+                } else {
+                    inView = null == e.canSee(s, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);
+                    oldInView = null == e.canSee(lastPositionState, tmpObj.x2, tmpObj.y2 + stringToInt[state['Target'].a[state['Target'].active]] - tmpObj.crouchVal * i.crouchDst, tmpObj.z2);                    
+                }
+
                 if (oldInView && !threatFakeLag && (s.team == null || tmpObj.team != s.team)) {
                     var calcAngDistance = function(a, b) {
                         var requiredDireY = __r.getDirection(a.z, a.x, b.z, b.x);
