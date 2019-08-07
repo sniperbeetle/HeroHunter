@@ -62713,10 +62713,12 @@ window.addEventListener("keyup", function(e) {
                 t[4] = (t[4] + 4) % 8   
             }
 
-            // 1 3 5 7 + 4 %8
             var c = n.getAngleDist(t[2], this.xDire);
             saveSpin(c);
             e.saveSpin(this, c);
+
+
+
             var l = !a && this.isYou;
             if (l && (this.leanAnimX -= c * i.leanSens, this.leanAnimX = n.limit(this.leanAnimX, i.leanMax), this.leanAnimY -= n.getAngleDist(t[3], this.yDire) * i.leanSens, this.leanAnimY = n.limit(this.leanAnimY, i.leanMax), this.leanAnimX && (this.leanAnimX *= Math.pow(i.leanPull, o)), this.leanAnimY && (this.leanAnimY *= Math.pow(i.leanPull, o)), this.leanAnimZ && (this.leanAnimZ *= Math.pow(i.leanPullZ, o)), this.bobAnimZ && (this.bobAnimZ *= Math.pow(i.bobPullZ, o)), this.bobAnimY && (this.bobAnimY *= Math.pow(i.bobPullY, o)), this.recoilX && (this.recoilX *= Math.pow(i.leanPull, o)), this.recoilZ && (this.recoilZ *= Math.pow(i.leanPull, o)), this.inspecting && this.inspectX < Math.PI / 2.8 && (this.inspectX += .1 * (Math.PI / 2.8 - this.inspectX))), 2 == t[11] ? e.swapMelee(this, a) : 1 == t[11] ? e.swapSecondary(this, a) : 3 == t[11] ? e.swapWeapon(this, null, null, void 0, 0, a) : t[10] && e.swapWeapon(this, t[10], !1, void 0, void 0, a), a || (this.recoilForce && (this.recoilAnim += this.recoilForce * o, this.recoilAnimY += this.recoilForce * (this.weapon.recoilY || 1) * (1 - .3 * this.crouchVal) * o, this.recoilForce *= Math.pow(this.weapon.recoverF, o)), this.recoilAnim && (this.recoilAnim *= Math.pow(this.weapon.recover, o)), this.recoilAnimY && (this.recoilAnimY *= Math.pow(this.weapon.recoverY || this.weapon.recover, o))), this.xDire = (t[2] || 0).round(3), this.yDire = (t[3] || 0).round(3), this.oldX = this.x, this.oldY = this.y, this.oldZ = this.z, this.weapon.zoom && (!this.weapon.noAim || 0 < this.swapTime)) {
                 var p = 0 >= this.reloadTimer && 0 >= this.swapTime;
@@ -66820,7 +66822,7 @@ window.addEventListener("keyup", function(e) {
                     c.save(), _.project(n.camera), c.beginPath(), c.moveTo(g/2, v/2), _.x = (_.x + 1) / 2, _.y = (_.y + 1) / 2, c.translate(g * _.x, v * (1 - _.y)), c.strokeStyle = "rgba(255, 255, 255, 0.4)", c.scale(S, S), c.lineTo(-60, -16), c.stroke(), c.fillStyle = "rgba(0, 0, 0, 0.8)", c.fillRect(-60, -16, 120, 16), m.dynamicHP && tmpObj.hpChase > tmpObj.health && (c.fillStyle = "#FFFFFF", c.fillRect(-60, -16, tmpObj.hpChase / tmpObj.maxHealth * 120, 16));
                     var x = s && s.team ? s.team : window.spectating ? 1 : 0;
                     c.fillStyle = x == tmpObj.team ? "#9eeb56" : "#eb5656", c.fillRect(-60, -16, tmpObj.health / tmpObj.maxHealth * 120, 16);
-                    if (s.team == null || s.team != tmpObj.team && __r) {
+                    if ((s.team == null || s.team != tmpObj.team) && __r && stringToInt[state['ESP'].a[state['ESP'].active]]) {
                         var distance = __r.getDistance3D(tmpObj.x, tmpObj.y, tmpObj.z, s.x, s.y, s.z);
                         var hcolor = ((tmpObj.health) / tmpObj.maxHealth) * 255
                         c.strokeStyle = "rgba(255," + hcolor + "," + hcolor + ",0.8)";
@@ -66842,7 +66844,7 @@ window.addEventListener("keyup", function(e) {
                             loadedImages[tmpObj.weapon.icon].src = "./textures/weapons/" + tmpObj.weapon.icon + ".png";
                         }
                     c.translate(0, -26), c.fillStyle = "white", c.font = "30px GameFont", o && c.fillText(o, -h / 2, 0), c.font = "20px GameFont", c.globalAlpha = 1, c.fillText(t, -h / 2 + l, 0), c.globalAlpha = .4, a && c.fillText(a, -h / 2 + l + p, 0), c.globalAlpha = 1, c.translate(0, -70);
-                    if (tmpObj.weapon.icon) {
+                    if (tmpObj.weapon.icon && stringToInt[state['ESP'].a[state['ESP'].active]]) {
                         c.drawImage(loadedImages[tmpObj.weapon.icon], -50, 0, 103, 52);
                     }
                     c.restore();
