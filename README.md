@@ -83,3 +83,5 @@ and
 
 
 Remote code execution could allow for a stealthy anti cheat check to be loaded mid game going unnoticed by a typical cheater. This extension completley disables remote code execution and alerts the user if they are trying to execute something new so that they cannot place an anti cheat system in stealth.
+
+If krunker.io wants some help in the cat game I'm down to give up the mouse game.
