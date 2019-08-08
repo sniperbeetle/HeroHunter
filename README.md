@@ -1,12 +1,12 @@
 # Krunker Multihack
 Hero Hunter v1.4.9
 
-Discontinued because of some humans. 
+Discontinued because of some humans. Checkout my patreon tho ayy https://www.patreon.com/hrt
 
 
 ## How to install
 
-<s>0. Download the latest release [here](https://github.com/hrt/HeroHunter/releases/download/1.0/HeroHunter.zip) and extract it.<s>
+<s>0. Download the latest release [here](https://github.com/hrt/HeroHunter/releases/download/1.0/HeroHunter.zip) and extract it.
 1. Visit chrome://extensions (via omnibox or menu -> Tools -> Extensions).
 2. Enable Developer mode by ticking the checkbox in the upper-right corner.
 3. Click on the "Load unpacked extension..." button.
